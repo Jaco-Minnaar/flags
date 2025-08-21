@@ -22,13 +22,14 @@ pub fn print(
     comptime format: []const u8,
     args: anytype,
 ) void {
+    var writer = terminal.writer.interface;
     for (style) |color| {
-        terminal.config.setColor(&terminal.writer.interface, color) catch {};
+        terminal.config.setColor(&writer, color) catch {};
     }
 
     terminal.writer.print(format, args) catch {};
 
     if (style.len > 0) {
-        terminal.config.setColor(&terminal.writer.interface, .reset) catch {};
+        terminal.config.setColor(&writer, .reset) catch {};
     }
 }
