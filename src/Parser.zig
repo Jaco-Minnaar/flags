@@ -15,7 +15,8 @@ current_arg: usize,
 colors: *const ColorScheme,
 
 fn fatal(parser: *const Parser, comptime fmt: []const u8, args: anytype) noreturn {
-    const stderr = Terminal.init(std.fs.File.stderr());
+    var term_buf: [1024]u8 = undefined;
+    const stderr = Terminal.init(std.fs.File.stderr(), &term_buf);
     stderr.print(parser.colors.error_label, "Error: ", .{});
     stderr.print(parser.colors.error_message, fmt ++ "\n", args);
     std.process.exit(1);

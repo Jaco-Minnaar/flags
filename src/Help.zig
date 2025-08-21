@@ -18,7 +18,8 @@ pub const Usage = struct {
     body: []const u8,
 
     pub fn render(usage: Usage, stdout: File, colors: *const ColorScheme) void {
-        const term = Terminal.init(stdout);
+        var term_buf: [1024]u8 = undefined;
+        const term = Terminal.init(stdout, &term_buf);
         usage.renderToTerminal(term, colors);
     }
 
@@ -100,7 +101,8 @@ const Section = struct {
 };
 
 pub fn render(help: *const Help, stdout: File, colors: *const ColorScheme) void {
-    const term = Terminal.init(stdout);
+    var term_buf: [1024]u8 = undefined;
+    const term = Terminal.init(stdout, &term_buf);
     help.usage.renderToTerminal(term, colors);
 
     if (help.description) |description| {
@@ -181,7 +183,7 @@ pub fn generate(Flags: type, info: meta.FlagsInfo, command: []const u8) Help {
     help.sections = help.sections ++ .{options};
 
     if (info.positionals.len > 0) {
-        const pos_descriptions = meta.getDescriptions(std.meta.FieldType(Flags, .positional));
+        const pos_descriptions = meta.getDescriptions(@FieldType(Flags, "positional"));
         var arguments = Section{ .header = "Arguments:" };
         for (info.positionals) |arg| {
             arguments.add(.{

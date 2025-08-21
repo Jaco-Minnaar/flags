@@ -9,10 +9,10 @@ const File = std.fs.File;
 writer: File.Writer,
 config: tty.Config,
 
-pub fn init(file: File) Terminal {
+pub fn init(file: File, buffer: []u8) Terminal {
     return .{
-        .writer = file.writer(),
-        .config = tty.detectConfig(file),
+        .writer = file.writer(buffer),
+        .config = tty.Config.detect(file),
     };
 }
 
@@ -23,12 +23,12 @@ pub fn print(
     args: anytype,
 ) void {
     for (style) |color| {
-        terminal.config.setColor(terminal.writer, color) catch {};
+        terminal.config.setColor(&terminal.writer.interface, color) catch {};
     }
 
     terminal.writer.print(format, args) catch {};
 
     if (style.len > 0) {
-        terminal.config.setColor(terminal.writer, .reset) catch {};
+        terminal.config.setColor(&terminal.writer.interface, .reset) catch {};
     }
 }
