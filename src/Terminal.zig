@@ -27,7 +27,7 @@ pub fn print(
         terminal.config.setColor(&writer, color) catch {};
     }
 
-    terminal.writer.print(format, args) catch {};
+    writer.print(format, args) catch {};
 
     if (style.len > 0) {
         terminal.config.setColor(&writer, .reset) catch {};
