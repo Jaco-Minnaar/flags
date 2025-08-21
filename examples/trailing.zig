@@ -10,10 +10,10 @@ pub fn main() !void {
 
     const options = flags.parse(args, "trailing", Flags, .{});
 
-    try std.json.stringify(
-        options,
-        .{ .whitespace = .indent_2 },
-        std.io.getStdOut().writer(),
+    var stdout_buf: [1024]u8 = undefined;
+    std.fs.File.stdout().writer(&stdout_buf).interface.print(
+        "{f}",
+        .{std.json.fmt(options, .{ .whitespace = .indent_2 })},
     );
 }
 

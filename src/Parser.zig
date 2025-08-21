@@ -15,7 +15,7 @@ current_arg: usize,
 colors: *const ColorScheme,
 
 fn fatal(parser: *const Parser, comptime fmt: []const u8, args: anytype) noreturn {
-    const stderr = Terminal.init(std.io.getStdErr());
+    const stderr = Terminal.init(std.fs.File.stderr());
     stderr.print(parser.colors.error_label, "Error: ", .{});
     stderr.print(parser.colors.error_message, fmt ++ "\n", args);
     std.process.exit(1);
@@ -41,7 +41,7 @@ pub fn parse(parser: *Parser, Flags: type, comptime command_name: []const u8) Fl
         }
 
         if (std.mem.eql(u8, arg, "--help") or std.mem.eql(u8, arg, "-h")) {
-            help.render(std.io.getStdOut(), parser.colors);
+            help.render(std.fs.File.stdout(), parser.colors);
             std.process.exit(0);
         }
 
