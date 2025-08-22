@@ -22,18 +22,19 @@ pub fn print(
     comptime format: []const u8,
     args: anytype,
 ) void {
-    var writer = terminal.writer.interface;
+    var writer = @constCast(&terminal.writer.interface);
     for (style) |color| {
-        terminal.config.setColor(&writer, color) catch {};
+        terminal.config.setColor(writer, color) catch {};
     }
 
     writer.print(format, args) catch {};
 
     if (style.len > 0) {
-        terminal.config.setColor(&writer, .reset) catch {};
+        terminal.config.setColor(writer, .reset) catch {};
     }
 }
 
 pub fn flush(terminal: Terminal) void {
-    terminal.writer.interface.flush() catch {};
+    var writer = @constCast(&terminal.writer.interface);
+    writer.flush() catch {};
 }
