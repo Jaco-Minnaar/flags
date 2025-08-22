@@ -8,16 +8,18 @@ pub fn main() !void {
     const args = try std.process.argsAlloc(gpa.allocator());
     defer std.process.argsFree(gpa.allocator(), args);
 
-    const options = flags.parse(args, "overview", Flags, .{});
+    const options = try flags.parse(args, "overview", Flags, .{});
 
-    var stdout_buf: [1024]u8 = undefined;
-    var stdout_writer = std.fs.File.stdout().writer(&stdout_buf);
-    const stdout = &stdout_writer.interface;
+    var stderr_buf: [1024]u8 = undefined;
+    var stderr_writer = std.fs.File.stderr().writer(&stderr_buf);
+    const stderr = &stderr_writer.interface;
 
-    try stdout.print(
+    try stderr.print(
         "{f}",
         .{std.json.fmt(options, .{ .whitespace = .indent_2 })},
     );
+
+    try stderr.flush();
 }
 
 const Flags = struct {

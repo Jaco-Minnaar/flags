@@ -17,12 +17,12 @@ pub fn parse(
     comptime exe_name: []const u8,
     Flags: type,
     options: Options,
-) Flags {
+) !Flags {
     var parser = Parser{
         .args = args,
         .current_arg = if (options.skip_first_arg) 1 else 0,
         .colors = options.colors,
     };
 
-    return parser.parse(Flags, exe_name);
+    return try parser.parse(Flags, exe_name);
 }

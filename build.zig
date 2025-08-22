@@ -22,7 +22,6 @@ pub fn build(b: *std.Build) void {
     tests_step.dependOn(&tests_run.step);
     b.default_step.dependOn(tests_step);
 
-    const example_step = b.step("run-example", "Run the specified example");
     const example_option = b.option(
         enum {
             overview,
@@ -39,11 +38,15 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     example_mod.addImport("flags", mod);
-    const example = b.addExecutable(.{
+    const example_exe = b.addExecutable(.{
         .name = "example",
         .root_module = example_mod,
     });
-    const run_example = b.addRunArtifact(example);
-    if (b.args) |args| run_example.addArgs(args);
-    example_step.dependOn(&run_example.step);
+    b.installArtifact(example_exe);
+    const run_example_cmd = b.addRunArtifact(example_exe);
+    run_example_cmd.step.dependOn(b.getInstallStep());
+    if (b.args) |args| run_example_cmd.addArgs(args);
+
+    const example_step = b.step("run-example", "Run the specified example");
+    example_step.dependOn(&run_example_cmd.step);
 }

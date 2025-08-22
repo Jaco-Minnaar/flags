@@ -16,14 +16,14 @@ colors: *const ColorScheme,
 
 fn fatal(parser: *const Parser, comptime fmt: []const u8, args: anytype) noreturn {
     var term_buf: [1024]u8 = undefined;
-    const stderr = Terminal.init(std.fs.File.stderr(), &term_buf);
-    stderr.print(parser.colors.error_label, "Error: ", .{});
-    stderr.print(parser.colors.error_message, fmt ++ "\n", args);
-    stderr.flush();
+    var stderr = Terminal.init(std.fs.File.stderr(), &term_buf);
+    stderr.print(parser.colors.error_label, "Error: ", .{}) catch unreachable;
+    stderr.print(parser.colors.error_message, fmt ++ "\n", args) catch unreachable;
+    stderr.flush() catch unreachable;
     std.process.exit(1);
 }
 
-pub fn parse(parser: *Parser, Flags: type, comptime command_name: []const u8) Flags {
+pub fn parse(parser: *Parser, Flags: type, comptime command_name: []const u8) !Flags {
     const info = comptime meta.info(Flags);
     const help = comptime Help.generate(Flags, info, command_name);
 
@@ -43,7 +43,7 @@ pub fn parse(parser: *Parser, Flags: type, comptime command_name: []const u8) Fl
         }
 
         if (std.mem.eql(u8, arg, "--help") or std.mem.eql(u8, arg, "-h")) {
-            help.render(std.fs.File.stdout(), parser.colors);
+            try help.render(std.fs.File.stdout(), parser.colors);
             std.process.exit(0);
         }
 
@@ -96,7 +96,7 @@ pub fn parse(parser: *Parser, Flags: type, comptime command_name: []const u8) Fl
 
         inline for (info.subcommands) |cmd| {
             if (std.mem.eql(u8, arg, cmd.command_name)) {
-                const cmd_flags = parser.parse(cmd.type, command_name ++ " " ++ cmd.command_name);
+                const cmd_flags = try parser.parse(cmd.type, command_name ++ " " ++ cmd.command_name);
                 flags.command = @unionInit(@TypeOf(flags.command), cmd.field_name, cmd_flags);
                 passed.command = true;
                 continue :next_arg;

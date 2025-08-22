@@ -17,11 +17,11 @@ pub fn init(file: File, buffer: []u8) Terminal {
 }
 
 pub fn print(
-    terminal: Terminal,
+    terminal: *Terminal,
     style: ColorScheme.Style,
     comptime format: []const u8,
     args: anytype,
-) void {
+) !void {
     var writer = @constCast(&terminal.writer.interface);
     for (style) |color| {
         terminal.config.setColor(writer, color) catch {};
@@ -34,7 +34,7 @@ pub fn print(
     }
 }
 
-pub fn flush(terminal: Terminal) void {
+pub fn flush(terminal: *Terminal) !void {
     var writer = @constCast(&terminal.writer.interface);
-    writer.flush() catch {};
+    try writer.flush();
 }

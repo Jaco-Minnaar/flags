@@ -17,17 +17,17 @@ pub const Usage = struct {
     command: []const u8,
     body: []const u8,
 
-    pub fn render(usage: Usage, stdout: File, colors: *const ColorScheme) void {
+    pub fn render(usage: Usage, stdout: File, colors: *const ColorScheme) !void {
         var term_buf: [1024]u8 = undefined;
-        const term = Terminal.init(stdout, &term_buf);
-        usage.renderToTerminal(term, colors);
-        term.flush();
+        var term = Terminal.init(stdout, &term_buf);
+        try usage.renderToTerminal(&term, colors);
+        try term.flush();
     }
 
-    pub fn renderToTerminal(usage: Usage, term: Terminal, colors: *const ColorScheme) void {
-        term.print(colors.header, "Usage: ", .{});
-        term.print(colors.command_name, "{s}", .{usage.command});
-        term.print(colors.usage, "{s}\n", .{usage.body});
+    pub fn renderToTerminal(usage: Usage, term: *Terminal, colors: *const ColorScheme) !void {
+        try term.print(colors.header, "Usage: ", .{});
+        try term.print(colors.command_name, "{s}", .{usage.command});
+        try term.print(colors.usage, "{s}\n", .{usage.body});
     }
 
     pub fn generate(Flags: type, info: meta.FlagsInfo, command: []const u8) Usage {
@@ -101,47 +101,48 @@ const Section = struct {
     }
 };
 
-pub fn render(help: *const Help, stdout: File, colors: *const ColorScheme) void {
+pub fn render(help: *const Help, stdout: File, colors: *const ColorScheme) !void {
     var term_buf: [1024]u8 = undefined;
-    const term = Terminal.init(stdout, &term_buf);
-    help.usage.renderToTerminal(term, colors);
+    var term = Terminal.init(stdout, &term_buf);
+
+    try help.usage.renderToTerminal(&term, colors);
 
     if (help.description) |description| {
-        term.print(colors.command_description, "\n{s}\n", .{description});
+        try term.print(colors.command_description, "\n{s}\n", .{description});
     }
 
     for (help.sections) |section| {
-        term.print(colors.header, "\n{s}\n\n", .{section.header});
+        try term.print(colors.header, "\n{s}\n\n", .{section.header});
 
         for (section.items) |item| {
-            term.print(colors.option_name, "  {s}", .{item.name});
+            try term.print(colors.option_name, "  {s}", .{item.name});
             if (item.desc) |desc| {
-                term.print(&.{}, " ", .{});
+                try term.print(&.{}, " ", .{});
 
                 // Ensure the description gets printed as it looks in the user's Flags struct
                 // (Left-align all lines, even with multi-line descriptions)
                 var lines = std.mem.tokenizeAny(u8, desc, "\r\n");
                 if (lines.next()) |line1| {
                     for (0..(section.max_name_len - item.name.len)) |_| {
-                        term.print(&.{}, " ", .{});
+                        try term.print(&.{}, " ", .{});
                     }
-                    term.print(colors.description, "{s}", .{line1});
+                    try term.print(colors.description, "{s}", .{line1});
                 }
 
                 while (lines.next()) |line| {
-                    term.print(&.{}, "\n", .{});
+                    try term.print(&.{}, "\n", .{});
                     for (0..(section.max_name_len + 3)) |_| {
-                        term.print(&.{}, " ", .{});
+                        try term.print(&.{}, " ", .{});
                     }
-                    term.print(colors.description, "{s}", .{line});
+                    try term.print(colors.description, "{s}", .{line});
                 }
             }
 
-            term.print(&.{}, "\n", .{});
+            try term.print(&.{}, "\n", .{});
         }
     }
 
-    term.flush();
+    try term.flush();
 }
 
 pub fn generate(Flags: type, info: meta.FlagsInfo, command: []const u8) Help {
