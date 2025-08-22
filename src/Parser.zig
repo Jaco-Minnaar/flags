@@ -19,6 +19,7 @@ fn fatal(parser: *const Parser, comptime fmt: []const u8, args: anytype) noretur
     const stderr = Terminal.init(std.fs.File.stderr(), &term_buf);
     stderr.print(parser.colors.error_label, "Error: ", .{});
     stderr.print(parser.colors.error_message, fmt ++ "\n", args);
+    stderr.flush();
     std.process.exit(1);
 }
 
