@@ -21,6 +21,7 @@ pub const Usage = struct {
         var term_buf: [1024]u8 = undefined;
         const term = Terminal.init(stdout, &term_buf);
         usage.renderToTerminal(term, colors);
+        term.flush();
     }
 
     pub fn renderToTerminal(usage: Usage, term: Terminal, colors: *const ColorScheme) void {
@@ -139,6 +140,8 @@ pub fn render(help: *const Help, stdout: File, colors: *const ColorScheme) void 
             term.print(&.{}, "\n", .{});
         }
     }
+
+    term.flush();
 }
 
 pub fn generate(Flags: type, info: meta.FlagsInfo, command: []const u8) Help {

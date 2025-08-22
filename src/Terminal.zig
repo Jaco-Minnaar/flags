@@ -33,3 +33,7 @@ pub fn print(
         terminal.config.setColor(&writer, .reset) catch {};
     }
 }
+
+pub fn flush(terminal: Terminal) void {
+    terminal.writer.interface.flush() catch {};
+}
